@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 from datetime import datetime, timezone
 
 from config import BRIEFINGS_DIR
@@ -7,6 +8,17 @@ from storage import fetch_recent_articles
 from trends import detect_trends, get_category_breakdown
 
 logger = logging.getLogger(__name__)
+
+_MARKDOWN_SPECIAL = re.compile(r"([\[\](){}#*+\-_.!`~|>\\])")
+_SAFE_URL_SCHEMES = ("https://", "http://")
+
+
+def _sanitize_markdown(text):
+    return _MARKDOWN_SPECIAL.sub(r"\\\1", text)
+
+
+def _is_safe_url(url):
+    return isinstance(url, str) and any(url.startswith(s) for s in _SAFE_URL_SCHEMES)
 
 
 def generate_briefing(days=7, ollama_available=False):
@@ -46,14 +58,17 @@ def build_highlights_section(articles, max_highlights=10):
         return "\n".join(lines)
 
     for article in top_articles:
-        title = article["title"]
+        title = _sanitize_markdown(article["title"])
         url = article["url"]
-        source = article["source_name"]
+        source = _sanitize_markdown(article["source_name"])
         score = article["relevance_score"]
         summary = article.get("summary") or ""
         topics_raw = article.get("topics_json")
 
-        lines.append(f"### [{title}]({url})")
+        if _is_safe_url(url):
+            lines.append(f"### [{title}]({url})")
+        else:
+            lines.append(f"### {title}")
         lines.append(f"**Source:** {source} | **Relevance:** {score:.2f}\n")
 
         if summary:
@@ -88,10 +103,13 @@ def build_by_category_section(articles):
         display_name = category.replace("_", " ").title()
         lines.append(f"### {display_name} ({len(cat_articles)})\n")
         for article in cat_articles[:10]:
-            title = article["title"][:100]
+            title = _sanitize_markdown(article["title"][:100])
             url = article["url"]
-            source = article["source_name"]
-            lines.append(f"- [{title}]({url}) — *{source}*")
+            source = _sanitize_markdown(article["source_name"])
+            if _is_safe_url(url):
+                lines.append(f"- [{title}]({url}) — *{source}*")
+            else:
+                lines.append(f"- {title} — *{source}*")
         if len(cat_articles) > 10:
             lines.append(f"- *...and {len(cat_articles) - 10} more*")
         lines.append("")

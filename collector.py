@@ -7,7 +7,7 @@ from html import unescape
 import feedparser
 import requests
 
-from config import FETCH_TIMEOUT_SECONDS, MAX_ARTICLES_PER_FEED
+from config import FETCH_TIMEOUT_SECONDS, MAX_ARTICLES_PER_FEED, MAX_RESPONSE_BYTES
 
 logger = logging.getLogger(__name__)
 
@@ -62,13 +62,33 @@ def fetch_single_feed(feed_config):
             feed_url,
             timeout=FETCH_TIMEOUT_SECONDS,
             headers={"User-Agent": "ResearchPipeline/1.0"},
+            stream=True,
         )
         response.raise_for_status()
+
+        content_length = response.headers.get("Content-Length")
+        if content_length and int(content_length) > MAX_RESPONSE_BYTES:
+            logger.warning(
+                "Feed %s too large (%s bytes), skipping", feed_name, content_length
+            )
+            response.close()
+            return articles
+
+        chunks = []
+        bytes_read = 0
+        for chunk in response.iter_content(chunk_size=65536):
+            bytes_read += len(chunk)
+            if bytes_read > MAX_RESPONSE_BYTES:
+                logger.warning("Feed %s exceeded %d bytes during read, truncating", feed_name, MAX_RESPONSE_BYTES)
+                break
+            chunks.append(chunk)
+        response.close()
+        content = b"".join(chunks)
     except requests.RequestException as exc:
         logger.warning("Failed to fetch %s: %s", feed_name, exc)
         return articles
 
-    parsed = feedparser.parse(response.text)
+    parsed = feedparser.parse(content)
 
     if parsed.bozo and not parsed.entries:
         logger.warning("Malformed feed from %s: %s", feed_name, parsed.bozo_exception)
