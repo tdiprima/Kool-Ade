@@ -52,11 +52,11 @@ def summarize_article(article):
     snippet = article.get("content_snippet", "")[:1500]
     source = article.get("source_name", "")[:100]
 
-    prompt = f"""You are a research analyst focused on AI and DevSecOps.
-Summarize the article between the <article> tags in 2-3 concise sentences. Focus on:
-- What is new or significant
-- Practical implications for DevSecOps practitioners
-- Any AI/ML angle if present
+    prompt = f"""You are explaining tech news to a 10th grader who is smart but not a security expert.
+Summarize the article between the <article> tags in 2-3 plain sentences. Avoid jargon — if you must use a technical term, explain it briefly. Focus on:
+- What happened or what changed
+- Why it matters to regular people or developers
+- Any AI angle if present
 
 Then list 2-5 topic tags (lowercase, short phrases).
 
