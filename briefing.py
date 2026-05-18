@@ -1,7 +1,7 @@
 import json
 import logging
 import re
-from datetime import datetime, timezone
+from datetime import datetime
 
 from config import BRIEFINGS_DIR
 from storage import fetch_recent_articles
@@ -22,7 +22,7 @@ def _is_safe_url(url):
 
 
 def generate_briefing(days=7, ollama_available=False):
-    now = datetime.now(timezone.utc)
+    now = datetime.now().astimezone()
     date_str = now.strftime("%Y-%m-%d")
     articles = fetch_recent_articles(days=days, min_relevance=0.01)
     trend_report = detect_trends(days=30)
@@ -30,7 +30,7 @@ def generate_briefing(days=7, ollama_available=False):
 
     sections = []
     sections.append(f"# AI & DevSecOps Research Briefing — {date_str}\n")
-    sections.append(f"*Generated {now.strftime('%Y-%m-%d %H:%M UTC')} "
+    sections.append(f"*Generated {now.strftime('%Y-%m-%d %H:%M %Z')} "
                     f"| {len(articles)} relevant articles from the last {days} days*\n")
 
     if not ollama_available:

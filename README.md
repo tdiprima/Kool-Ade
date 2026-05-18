@@ -1,8 +1,6 @@
 # KoolAdeOps
 Automated research pipeline that pulls AI and DevSecOps articles from 19 curated sources, scores them for relevance, summarizes them with a local LLM, and delivers a daily Markdown briefing — no subscriptions, no cloud API keys required.
 
-
-
 ## Keeping Up Is a Full-Time Job
 
 The AI security and DevSecOps landscape moves fast. ArXiv drops new papers daily. CISA publishes advisories. Schneier, Krebs, The Hacker News, Reddit communities, and vendor blogs all publish independently. Manually checking each source, filtering signal from noise, and distilling what actually matters takes hours — time most engineers don't have.
@@ -109,3 +107,11 @@ Press Enter to accept today, type `yesterday`, or enter any `YYYY-MM-DD` date. T
 | `FETCH_TIMEOUT` | `30` | HTTP timeout in seconds |
 
 Briefings are written to the `briefings/` directory, named `briefing-YYYY-MM-DD.md`. The SQLite database (`research.db`) accumulates over time, enabling the 30-day trend analysis to improve with each run.
+
+## Disclaimer
+
+"KoolAdeOps" is an independent open-source project and is **not affiliated with, endorsed by, sponsored by, or connected to** Kool-Aid, Kraft Heinz, or any of their subsidiaries or brands.
+
+This repository exists purely for educational purposes. No powdered beverages were harmed, mixed, or distributed in the making of this project. 👻
+
+<br>
